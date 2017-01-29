@@ -1,11 +1,14 @@
 --Art from: Curt - cjc83486,  http://opengameart.org/content/rpg-character
 
+local sti = require "sti" -- simple tiled implementation
+
 function love.load()
   --basic variables
   lg      = love.graphics;
   width   = lg.getWidth();
   height  = lg.getHeight();
   universal_size = 35;
+  map = sti("map.lua");
 
   --player object
   player = {};
@@ -20,17 +23,6 @@ function love.load()
   player.hp = 100;
   player.inventory = {};
   player.inventory.hasSword = false;
-
-  --image loading for map
-  grass   = lg.newImage("images/grass.png");
-
-  --basic size of blocks for map
-  block_width   = universal_size;
-  block_height  = universal_size;
-
-  --z index of block
-  block_depth = 0;
-
 
   --create grid
   grid = {};
@@ -49,24 +41,7 @@ function love.load()
 end --end of load function
 
 function love.draw()
- for x = 0, grid.size do
-   for y = 0, grid.size do -- loop through grid to find grass spots
-      if grid[x][y] == 1 then
-         love.graphics.draw(grass, x * grid.size, y * grid.size); -- if grass, draw grass image
-      end
-  end
- end
-
- --boundaries of player
- --top, left
- if (player.x * grid.size) < 0 then player.x = 0 end
- if (player.y * grid.size) < 0 then player.y = 0 end
- --bottom, right
- if player.x + player.w > width  then player.x = (width  - grid.size) end
- if player.y + player.h > height then player.y = (height - grid.size) end
-
-
-
+  map:draw();
  --draw player at its x and y coord
  love.graphics.draw(player.image, player.x, player.y);
 
@@ -79,15 +54,8 @@ function love.draw()
 end -- end of draw function
 
 function love.update(dt)
-  player.w = player.w + player.direction[1];
-  player.h = player.h + player.direction[2];
-
-  --keep player from flying away
-  if player.x == player.x * universal_size then
-    player.direction[1] = 0;
-  elseif player.y == player.y * universal_size then
-    player.direction[2] = 0;
-  end
+  map:update(dt);
+  
   --set movement
       if love.keyboard.isDown("w") then
                 player.y = player.y - player.size/4;
@@ -113,6 +81,14 @@ function love.update(dt)
         elseif key ~= " " then
           player.attack = false;
         end
+
+        --boundaries of player
+        --top, left
+        if (player.x * grid.size) < 0 then player.x = 0 end
+        if (player.y * grid.size) < 0 then player.y = 0 end
+        --bottom, right
+        if (player.x + player.w) >  width then player.x = (width - grid.size)  end
+        if (player.y + player.h) > height then player.y = (height - grid.size)  end
 end --end of update function
 
 -- function love.keypressed(key) --function for player movement
